@@ -2,6 +2,8 @@
 
 一个可以在浏览器中编写、运行和分享 `HTML / CSS / JavaScript` 的在线代码编辑器。打开页面后即可开始写代码，右侧实时预览效果，底部查看控制台输出，适合前端课程作业演示、课堂练习和小型页面实验。
 
+页面已在Vercel部署：https://online-code-editor-pink-five.vercel.app/
+
 ## 主要功能
 
 - 代码编辑：支持 HTML、CSS、JavaScript 三个编辑区，带语法高亮、行号和基础补全。
@@ -147,4 +149,3 @@ Output Directory: dist
 - 控制台通信：iframe `postMessage`
 
 用户代码会在带 `sandbox` 的 iframe 中运行，不会直接注入主页面。
-

@@ -9,9 +9,11 @@ function escapeClosingTag(value: string, tagName: 'script' | 'style'): string {
   return value.replace(new RegExp(`</${tagName}`, 'gi'), `<\\/${tagName}`)
 }
 
-const consoleBridgeScript = `
+function buildConsoleBridgeScript(runId: number): string {
+  return `
 (function () {
   var SOURCE = 'online-code-editor-preview';
+  var RUN_ID = ${runId};
 
   function serialize(value) {
     try {
@@ -32,7 +34,8 @@ const consoleBridgeScript = `
       source: SOURCE,
       event: 'console',
       level: level,
-      message: Array.prototype.slice.call(args).map(serialize).join(' ')
+      message: Array.prototype.slice.call(args).map(serialize).join(' '),
+      runId: RUN_ID
     }, '*');
   }
 
@@ -52,6 +55,7 @@ const consoleBridgeScript = `
     send('error', ['Unhandled promise rejection:', event.reason]);
   });
 })();`
+}
 
 export function buildSrcDoc({ html, css, js, runId }: BuildSrcDocInput): string {
   const safeCss = escapeClosingTag(css, 'style')
@@ -68,7 +72,7 @@ export function buildSrcDoc({ html, css, js, runId }: BuildSrcDocInput): string 
     </style>
     <script>
       // 在沙箱 iframe 内重写 console，把日志安全转发给宿主页面。
-      ${consoleBridgeScript}
+      ${buildConsoleBridgeScript(runId)}
     <\/script>
   </head>
   <body>
@@ -83,4 +87,3 @@ export function buildSrcDoc({ html, css, js, runId }: BuildSrcDocInput): string 
   </body>
 </html>`
 }
-

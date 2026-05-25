@@ -15,6 +15,8 @@ describe('buildSrcDoc', () => {
     expect(srcdoc).toContain("console.log('ready')")
     expect(srcdoc).toContain('online-code-editor-preview')
     expect(srcdoc).toContain('content="7"')
+    expect(srcdoc).toContain('runId: RUN_ID')
+    expect(srcdoc).toContain('var RUN_ID = 7;')
   })
 
   it('escapes closing script and style tags inside user code', () => {
@@ -29,4 +31,3 @@ describe('buildSrcDoc', () => {
     expect(srcdoc).toContain('<\\/script>')
   })
 })
-

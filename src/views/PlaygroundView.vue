@@ -44,7 +44,7 @@ const consoleHeight = ref(240)
 const resizeTarget = ref<ResizeTarget | null>(null)
 let toastTimer = 0
 
-useConsoleCapture(() => iframeWindow.value, store)
+useConsoleCapture(() => iframeWindow.value, () => preview.previewVersion.value, store)
 
 const layoutStyle = computed<CSSProperties>(() => ({
   '--editor-pane-size': editorPaneSize.value,

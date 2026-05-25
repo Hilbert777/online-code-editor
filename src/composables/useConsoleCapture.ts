@@ -12,19 +12,28 @@ function isPreviewMessage(value: unknown): value is PreviewConsoleMessage {
     payload.source === 'online-code-editor-preview' &&
     payload.event === 'console' &&
     (payload.level === 'log' || payload.level === 'warn' || payload.level === 'error') &&
-    typeof payload.message === 'string'
+    typeof payload.message === 'string' &&
+    typeof payload.runId === 'number'
   )
 }
 
 export function useConsoleCapture(
   getFrameWindow: () => Window | null,
+  getRunId: () => number,
   store: ReturnType<typeof useEditorStore>,
 ) {
   function handleMessage(event: MessageEvent<unknown>) {
-    const frameWindow = getFrameWindow()
+    if (!isPreviewMessage(event.data)) {
+      return
+    }
 
-    // srcdoc iframe 的 origin 通常是 "null"，因此这里用 sourceWindow 做消息来源校验。
-    if (!frameWindow || event.source !== frameWindow || !isPreviewMessage(event.data)) {
+    const frameWindow = getFrameWindow()
+    const isCurrentFrame = Boolean(frameWindow && event.source === frameWindow)
+    const isCurrentRun = event.data.runId === getRunId()
+
+    // srcdoc iframe 的 origin 通常是 "null"。优先校验 frameWindow；
+    // 同步脚本可能早于 iframe load 触发，因此用 runId 兜底避免日志丢失。
+    if (!isCurrentFrame && !isCurrentRun) {
       return
     }
 
@@ -40,4 +49,3 @@ export function useConsoleCapture(
     window.removeEventListener('message', handleMessage)
   })
 }
-

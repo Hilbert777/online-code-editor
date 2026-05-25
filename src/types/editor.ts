@@ -34,4 +34,5 @@ export interface PreviewConsoleMessage {
   event: 'console'
   level: ConsoleLogType
   message: string
+  runId: number
 }

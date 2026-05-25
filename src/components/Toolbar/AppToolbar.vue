@@ -14,6 +14,7 @@ import {
 } from 'lucide-vue-next'
 import type { CodeTemplate, ThemeMode } from '../../types/editor'
 
+// 工具栏只负责展示和抛出事件，具体业务由 PlaygroundView 统一处理。
 defineProps<{
   isRunning: boolean
   isSharing: boolean
@@ -36,6 +37,7 @@ const emit = defineEmits<{
 }>()
 
 function handleTemplateChange(event: Event) {
+  // select 的值是模板 id，父组件收到后再决定是否二次确认并切换模板。
   emit('changeTemplate', (event.target as HTMLSelectElement).value)
 }
 </script>

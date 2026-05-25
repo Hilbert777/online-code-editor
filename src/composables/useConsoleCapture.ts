@@ -3,6 +3,7 @@ import type { useEditorStore } from '../stores/editor'
 import type { ConsoleLogType, PreviewConsoleMessage } from '../types/editor'
 
 function isPreviewMessage(value: unknown): value is PreviewConsoleMessage {
+  // postMessage 可能收到其他来源消息，必须先验证自定义协议字段。
   if (typeof value !== 'object' || value === null) {
     return false
   }
@@ -23,6 +24,7 @@ export function useConsoleCapture(
   store: ReturnType<typeof useEditorStore>,
 ) {
   function handleMessage(event: MessageEvent<unknown>) {
+    // 只处理 iframe console bridge 发出的消息，其余 message 事件全部忽略。
     if (!isPreviewMessage(event.data)) {
       return
     }
@@ -42,6 +44,7 @@ export function useConsoleCapture(
   }
 
   onMounted(() => {
+    // 组件挂载后开始监听 iframe 的 postMessage 控制台输出。
     window.addEventListener('message', handleMessage)
   })
 

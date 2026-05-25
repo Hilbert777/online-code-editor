@@ -11,6 +11,7 @@ const emit = defineEmits<{
 }>()
 
 function selectShareUrl(event: FocusEvent) {
+  // 聚焦时自动选中完整链接，方便用户手动复制。
   const textarea = event.target as HTMLTextAreaElement
   textarea.select()
 }

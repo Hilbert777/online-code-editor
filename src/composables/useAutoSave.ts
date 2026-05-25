@@ -8,6 +8,7 @@ const STORAGE_KEY = 'online-code-editor:state:v2'
 export type RestoreSource = 'hash' | 'localStorage' | 'default'
 
 function canUseLocalStorage(): boolean {
+  // 部分隐私模式或受限环境会禁用 localStorage，先探测再使用。
   try {
     const key = 'online-code-editor:storage-test'
     localStorage.setItem(key, '1')
@@ -24,6 +25,7 @@ export function useAutoSave(store: ReturnType<typeof useEditorStore>) {
   const storageAvailable = ref(canUseLocalStorage())
 
   function restore(): RestoreSource {
+    // 恢复优先级：分享链接 Hash > 本地缓存 > 默认模板。
     const snapshotFromHash = readSnapshotFromHash(window.location.hash)
     if (snapshotFromHash) {
       store.hydrate(snapshotFromHash)
@@ -55,6 +57,7 @@ export function useAutoSave(store: ReturnType<typeof useEditorStore>) {
   }
 
   const saveNow = useThrottleFn(() => {
+    // 自动保存使用节流，避免编辑时每次按键都写 localStorage。
     if (!storageAvailable.value) {
       return
     }

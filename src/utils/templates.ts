@@ -1,5 +1,6 @@
 import type { CodeTemplate } from '../types/editor'
 
+// 内置模板配置：下拉框直接读取该数组，新增示例只需要追加一项。
 export const templates: CodeTemplate[] = [
   {
     id: 'blank',

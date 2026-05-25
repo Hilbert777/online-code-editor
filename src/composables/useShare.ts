@@ -5,6 +5,7 @@ import { buildShareHash } from '../utils/compress'
 const MAX_SHARE_URL_LENGTH = 6000
 
 async function copyToClipboard(text: string): Promise<void> {
+  // 优先使用现代 Clipboard API，不支持时退回隐藏 textarea 复制。
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text)
     return
@@ -25,6 +26,7 @@ export function useShare(store: ReturnType<typeof useEditorStore>) {
   const shareHash = computed(() => buildShareHash(store.snapshot))
 
   function createShareLink(): string {
+    // 分享只写入 URL Hash，静态部署环境下不需要服务端保存代码。
     isSharing.value = true
 
     try {

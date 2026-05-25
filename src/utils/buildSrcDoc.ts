@@ -6,10 +6,12 @@ export interface BuildSrcDocInput {
 }
 
 function escapeClosingTag(value: string, tagName: 'script' | 'style'): string {
+  // 防止用户代码中的 </script> 或 </style> 提前结束宿主注入标签。
   return value.replace(new RegExp(`</${tagName}`, 'gi'), `<\\/${tagName}`)
 }
 
 function buildConsoleBridgeScript(runId: number): string {
+  // 该脚本运行在 sandbox iframe 内，用 postMessage 把 console 输出转发给主页面。
   return `
 (function () {
   var SOURCE = 'online-code-editor-preview';
@@ -61,6 +63,7 @@ export function buildSrcDoc({ html, css, js, runId }: BuildSrcDocInput): string 
   const safeCss = escapeClosingTag(css, 'style')
   const safeJs = escapeClosingTag(js, 'script')
 
+  // srcdoc 直接生成完整 HTML 文档，iframe 每次刷新都会运行这一份隔离文档。
   return `<!doctype html>
 <html lang="zh-CN">
   <head>

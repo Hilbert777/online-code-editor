@@ -21,6 +21,7 @@ const workerHost = self as unknown as {
   }
 }
 
+// Monaco Editor 通过 Web Worker 提供语言服务，这里按语言分配不同 worker。
 workerHost.MonacoEnvironment = {
   getWorker: (_moduleId: string, label: string) => {
     if (label === 'html') {
@@ -42,6 +43,7 @@ const tabs: Array<{ id: EditorTab; label: string; language: string; fileName: st
   { id: 'js', label: 'JS', language: 'javascript', fileName: 'script.js' },
 ]
 
+// 编辑器组件直接读写 Pinia，保证三栏代码、模板恢复和预览刷新共用同一份状态。
 const store = useEditorStore()
 const containerRef = ref<HTMLElement | null>(null)
 const fallbackMode = ref(false)
@@ -63,6 +65,7 @@ function getCode(tab: EditorTab): string {
 }
 
 function createModel(tab: (typeof tabs)[number]) {
+  // 每个语言标签对应一个 Monaco model，切换标签时只切换 model，不重建编辑器。
   const model = monaco.editor.createModel(
     getCode(tab.id),
     tab.language,
@@ -94,6 +97,7 @@ function setupEditor() {
     return
   }
 
+  // 初始化三个 model 后创建单个 Monaco 实例，减少资源占用。
   tabs.forEach(createModel)
 
   editor = monaco.editor.create(containerRef.value, {

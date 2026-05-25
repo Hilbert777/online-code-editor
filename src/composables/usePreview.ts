@@ -11,6 +11,7 @@ export function usePreview(store: ReturnType<typeof useEditorStore>) {
   const lastRefreshReason = ref<PreviewRefreshReason>('initial')
 
   function refreshPreview(reason: PreviewRefreshReason = 'auto') {
+    // 每次刷新递增 version，iframe 使用 key 强制重建，确保用户 JS 重新执行。
     lastRefreshReason.value = reason
     previewVersion.value += 1
     store.beginRun()
@@ -23,6 +24,7 @@ export function usePreview(store: ReturnType<typeof useEditorStore>) {
   }
 
   const refreshPreviewDebounced = useDebounceFn(() => {
+    // 编辑输入时延迟刷新，降低 iframe 频繁重绘带来的卡顿。
     refreshPreview('auto')
   }, 300)
 

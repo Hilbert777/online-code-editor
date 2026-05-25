@@ -1,6 +1,7 @@
 import type { EditorSnapshot } from '../types/editor'
 
 function escapeClosingTag(value: string, tagName: 'script' | 'style'): string {
+  // 导出 HTML 时同样要转义闭合标签，避免用户代码截断生成的文档。
   return value.replace(new RegExp(`</${tagName}`, 'gi'), `<\\/${tagName}`)
 }
 
@@ -9,12 +10,14 @@ function pad(value: number): string {
 }
 
 export function createExportFileName(date = new Date()): string {
+  // 文件名包含日期和时间，方便用户区分多次导出的代码文件。
   const datePart = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`
   const timePart = `${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
   return `online-code-editor-${datePart}-${timePart}.html`
 }
 
 export function buildStandaloneHtml(snapshot: EditorSnapshot): string {
+  // 将编辑器三栏代码打包成一个可直接双击打开的独立 HTML 文件。
   const safeCss = escapeClosingTag(snapshot.css, 'style')
   const safeJs = escapeClosingTag(snapshot.js, 'script')
 
@@ -39,6 +42,7 @@ ${safeJs}
 }
 
 export function downloadTextFile(content: string, fileName: string, mimeType = 'text/html;charset=utf-8') {
+  // 纯前端下载方案：Blob 生成临时 URL，再用隐藏 a 标签触发浏览器下载。
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -54,8 +58,8 @@ export function downloadTextFile(content: string, fileName: string, mimeType = '
 }
 
 export function downloadStandaloneHtml(snapshot: EditorSnapshot): string {
+  // 返回文件名用于 Toast 提示，便于用户确认保存结果。
   const fileName = createExportFileName()
   downloadTextFile(buildStandaloneHtml(snapshot), fileName)
   return fileName
 }
-

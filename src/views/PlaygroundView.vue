@@ -24,7 +24,9 @@ const MIN_STACK_PANE = 260
 const MIN_CONSOLE_HEIGHT = 130
 const RESIZER_SIZE = 10
 
+// 主页面负责组合编辑器、预览、控制台、工具栏，并把各 composable 串联起来。
 const store = useEditorStore()
+// 自定义模板保存在 localStorage，必须先加载模板列表，再恢复上次选中的 templateId。
 store.hydrateCustomTemplates()
 const autoSave = useAutoSave(store)
 const restoredFrom = autoSave.restore()
@@ -44,9 +46,11 @@ const consoleHeight = ref(240)
 const resizeTarget = ref<ResizeTarget | null>(null)
 let toastTimer = 0
 
+// 监听 iframe 通过 postMessage 发回的控制台输出。
 useConsoleCapture(() => iframeWindow.value, () => preview.previewVersion.value, store)
 
 const layoutStyle = computed<CSSProperties>(() => ({
+  // 拖拽布局通过 CSS 变量传给样式层，避免直接操作 DOM 尺寸。
   '--editor-pane-size': editorPaneSize.value,
   '--editor-stack-size': editorStackSize.value,
   '--console-height': `${consoleHeight.value}px`,
@@ -62,6 +66,7 @@ watch(
 )
 
 function showToast(message: string, type: ToastType = 'info') {
+  // 所有操作反馈统一使用 1.5 秒 Toast，避免频繁弹窗打断编辑。
   window.clearTimeout(toastTimer)
   toast.value = { message, type }
   toastTimer = window.setTimeout(() => {
@@ -83,6 +88,7 @@ function handleResizeMove(event: PointerEvent) {
   }
 
   if (resizeTarget.value === 'editorPreview' && workspaceRef.value) {
+    // 桌面端调整左右宽度，窄屏堆叠布局下调整上下高度。
     const rect = workspaceRef.value.getBoundingClientRect()
 
     if (isStackedWorkspace()) {
@@ -99,6 +105,7 @@ function handleResizeMove(event: PointerEvent) {
   }
 
   if (resizeTarget.value === 'console' && shellRef.value) {
+    // 控制台高度从页面底部向上计算，并限制最大高度避免遮挡主工作区。
     const rect = shellRef.value.getBoundingClientRect()
     const maxHeight = Math.max(MIN_CONSOLE_HEIGHT, rect.height * 0.55)
     const statusBarHeight = 28
@@ -116,6 +123,7 @@ function stopResize() {
 }
 
 function startResize(event: PointerEvent, target: ResizeTarget) {
+  // Pointer Events 同时支持鼠标、触控板和触屏拖拽。
   if (target === 'editorPreview' && window.matchMedia('(max-width: 760px)').matches) {
     return
   }
@@ -150,6 +158,7 @@ function handleTemplateChange(templateId: string) {
     return
   }
 
+  // 切换模板会覆盖三栏代码，因此必须先让用户确认。
   const template = store.findTemplateById(templateId)
   if (!window.confirm(`确定切换到「${template.name}」吗？当前代码会被覆盖。`)) {
     return
@@ -163,6 +172,7 @@ function handleTemplateChange(templateId: string) {
 
 function handleShare() {
   try {
+    // 分享链接使用 URL Hash 保存压缩后的编辑器快照，不需要后端存储。
     shareUrl.value = share.createShareLink()
     isShareDialogOpen.value = true
     showToast('分享链接已生成', 'success')
@@ -183,6 +193,7 @@ async function copyShareUrl() {
 
 function handleSaveLocal() {
   try {
+    // 本地保存会导出一个独立 HTML 文件，里面内嵌当前 CSS 和 JS。
     const fileName = downloadStandaloneHtml(store.snapshot)
     showToast(`已保存：${fileName}`, 'success')
   } catch {
@@ -195,6 +206,7 @@ function handleUploadLocal() {
 }
 
 function handleSaveTemplate() {
+  // 使用浏览器 prompt 收集模板名，模板内容保存到 localStorage。
   const name = window.prompt('请输入模板名称', '')
 
   if (name === null) {
@@ -234,6 +246,7 @@ async function handleLocalCodeSelected(event: Event) {
   }
 
   try {
+    // File API 在浏览器端读取文件；HTML 文件会被拆成 HTML/CSS/JS 三栏。
     const imported = await readLocalCodeFiles(files)
 
     if (imported.snapshot) {

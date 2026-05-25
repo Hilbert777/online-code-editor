@@ -12,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const restoreLabel = computed(() => {
+  // 将内部恢复来源转换成用户能理解的状态栏文案。
   if (props.restoreSource === 'hash') {
     return '分享链接'
   }

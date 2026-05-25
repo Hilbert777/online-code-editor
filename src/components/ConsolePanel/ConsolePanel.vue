@@ -16,6 +16,7 @@ const listRef = ref<HTMLElement | null>(null)
 watch(
   () => props.logs.length,
   async () => {
+    // 新日志进入后自动滚动到底部，模拟浏览器开发者工具控制台体验。
     await nextTick()
     if (listRef.value) {
       listRef.value.scrollTop = listRef.value.scrollHeight

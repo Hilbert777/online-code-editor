@@ -17,10 +17,12 @@ const iframeRef = ref<HTMLIFrameElement | null>(null)
 const loading = ref(true)
 
 function emitFrameWindow() {
+  // 将 iframe.contentWindow 交给父组件，用于校验 postMessage 来源。
   emit('frameChange', iframeRef.value?.contentWindow ?? null)
 }
 
 function handleLoad() {
+  // iframe 加载完成后隐藏遮罩，并通知 store 结束运行状态。
   loading.value = false
   emitFrameWindow()
   emit('loaded')
@@ -29,6 +31,7 @@ function handleLoad() {
 watch(
   () => props.version,
   () => {
+    // version 变化代表 iframe 将重新运行，先显示短暂加载状态。
     loading.value = true
   },
 )
@@ -56,6 +59,7 @@ onMounted(() => {
 
       <div v-if="loading" class="preview-loading">正在运行代码...</div>
 
+      <!-- sandbox 隔离用户代码，避免直接访问主页面上下文。 -->
       <iframe
         :key="version"
         ref="iframeRef"
@@ -156,4 +160,3 @@ onMounted(() => {
   white-space: nowrap;
 }
 </style>
-

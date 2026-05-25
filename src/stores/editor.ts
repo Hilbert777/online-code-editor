@@ -19,13 +19,16 @@ import { defaultTemplate, templates } from '../utils/templates'
 const MAX_LOG_COUNT = 200
 
 function createLogId(): string {
+  // 优先使用浏览器原生 randomUUID，兼容旧环境时退回时间戳和随机数。
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
 export const useEditorStore = defineStore('editor', () => {
+  // 核心编辑内容：三块代码分别保存，方便预览、分享、导出和模板复用。
   const html = ref(defaultTemplate.html)
   const css = ref(defaultTemplate.css)
   const js = ref(defaultTemplate.js)
+  // UI 状态：主题、当前标签、模板、运行状态和控制台输出。
   const theme = ref<ThemeMode>('dark')
   const activeTab = ref<EditorTab>('html')
   const templateId = ref(defaultTemplate.id)
@@ -35,6 +38,7 @@ export const useEditorStore = defineStore('editor', () => {
   const lastRunAt = ref('尚未运行')
   const customTemplates = ref<CodeTemplate[]>([])
 
+  // snapshot 是当前编辑器状态的统一出口，分享、本地保存、导出都依赖它。
   const snapshot = computed<EditorSnapshot>(() => ({
     html: html.value,
     css: css.value,
@@ -43,6 +47,7 @@ export const useEditorStore = defineStore('editor', () => {
     templateId: templateId.value,
   }))
 
+  // 模板下拉框需要同时显示内置模板和 localStorage 中的用户自定义模板。
   const allTemplates = computed<CodeTemplate[]>(() => [...templates, ...customTemplates.value])
 
   function findTemplateById(nextTemplateId: string): CodeTemplate {
@@ -68,6 +73,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function hydrate(nextSnapshot: EditorSnapshot) {
+    // 从分享链接或本地缓存恢复时，整体覆盖当前编辑状态。
     html.value = nextSnapshot.html
     css.value = nextSnapshot.css
     js.value = nextSnapshot.js
@@ -76,6 +82,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function importCode(code: Partial<Pick<EditorSnapshot, 'html' | 'css' | 'js'>>) {
+    // 上传单个 CSS/JS 文件时只覆盖对应面板，避免误清空其他代码。
     if (typeof code.html === 'string') {
       html.value = code.html
     }
@@ -101,10 +108,12 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function hydrateCustomTemplates() {
+    // 页面初始化时加载用户保存过的模板，保证刷新后仍可选择。
     customTemplates.value = loadCustomTemplates()
   }
 
   function saveAsCustomTemplate(name: string): CodeTemplate {
+    // 同名自定义模板采用更新策略，避免模板下拉框里出现重复名称。
     const safeName = sanitizeTemplateName(name)
     const existingTemplate = customTemplates.value.find((template) => template.name === safeName)
     const template = createCustomTemplate(name, snapshot.value, existingTemplate?.id)
@@ -136,6 +145,7 @@ export const useEditorStore = defineStore('editor', () => {
       time: new Date().toLocaleTimeString(),
     }
 
+    // 控制台最多保留 200 条，防止长时间运行造成页面内存持续增长。
     logs.value = [...logs.value.slice(-MAX_LOG_COUNT + 1), item]
 
     if (type === 'error') {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 轻量 Toast 组件：用于展示保存、分享、上传等操作反馈。
 defineProps<{
   message: string
   type: 'success' | 'error' | 'info'
@@ -52,4 +53,3 @@ defineProps<{
   }
 }
 </style>
-
